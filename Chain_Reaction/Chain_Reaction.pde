@@ -5,53 +5,88 @@ HW47 -- All That Bouncin'
 2016-05-31
 */
 
-Ball[] balls;
+class Ball {
+  
+  final static int MOVING = 0;
+  final static int GROWING = 1;
+  final static int SHRINKING = 2;
+  final static int DEAD = 3;
+      
+  //other constants necessary?
+  
+  float x;
+  float y;
+  float rad;
+  color c;
+  float dx;
+  float dy;
+  int state;
 
-boolean reactionStarted;
 
-
-void setup() {
-  size(600, 600);
-  reactionStarted = false;
-  balls = new Ball[25];
-  for (int i=0; i < balls.length; i++ )
-    balls[i] = new Ball();
-  balls[0].state = Ball.DEAD;
-}
-
-
-void draw() {
-  background(0);
-  mouseClicked();
-
-  for (int i=0; i < balls.length; i++ ) {
-    balls[i] = new Ball();
-  }
-
-  for (int i=0; i < balls.length; i++ ) {
-    balls[i].draw();
-    balls[i].process();
+  void draw() {
+    frameRate(5);
+    ellipse( x, y, rad, rad );
+    fill(c);
+    move();
   }
   
-  if ( reactionStarted ) {
-     for (int i=0; i < balls.length; i++ ) {
-        if ( balls[i].state != Ball.MOVING ) {
-          for (int j=0; j < balls.length; j++) {
-             if ( i!=j && balls[i].isTouching(balls[j]) && balls[j].state == Ball.MOVING ) {
-                 balls[j].state = Ball.GROWING;
-             }
-          }
-        }
-     }
-  }
-}
+  
+  Ball() {
+    float r = random(256);
+    float g = random(256);
+    float b = random(256);
+    c = color( r, g, b );
+    
+    rad = 10;
+    
+    x = random( (width - r) + r/2 );
+    y = random( (height - r) + r/2 );
 
-void mouseClicked() {
-  if ( !reactionStarted ) {
-    balls[0].x = mouseX;
-    balls[0].y = mouseY;
-    balls[0].rad = 0.1;
-    balls[0].state = Ball.GROWING;
-    reactionStarted = true;
+    dx = random(10) - 5;
+    dy = random(10) - 5;
+    
+    state = MOVING;
+  }
+  
+
+  void move() {
+    x = x + dx;
+    y = y + dy;
+    bounce();
+  }
+
+ 
+  void bounce() {
+    if ( x == 0 || x == 600 )
+      dy *= -1;
+    if ( y == 0 || y == 600 )
+      dx *= -1; 
+  }
+
+  void process() {
+    if ( state == GROWING ) {
+      dx = 0; //stops moving
+      dy = 0;
+      float tmp = 2*rad; 
+      while ( rad < tmp ) {
+        rad++; //grows
+      }
+      state = SHRINKING;
     }
-}
+    if ( state == SHRINKING ) {
+      while ( rad > 0 ) {
+        rad--;
+      }
+      state = DEAD;
+    }
+    if ( state == DEAD ) {
+      rad = 0;
+    }
+  }
+
+  boolean isTouching( Ball other ) {
+     return (this.x == other.x && this.y == other.y); 
+  }
+ 
+  
+}//end class Ball
